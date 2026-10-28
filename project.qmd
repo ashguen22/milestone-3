@@ -1,0 +1,66 @@
+---
+title: "Project"
+author: Ashlan Guengerich
+format: html
+execute:
+  echo: false
+---
+
+```{r}
+#| message: false
+library(tidyverse)
+library(plotly)
+library(reactable)
+```
+
+I am planning on putting in different variables that directly relate with each other into a graphic that will help people better understand their correlation. For example, the relationship between batting average and striekout numbers is one that many people do not think about, but I will explore further. My project will show the success of players based on this information, so I will eventually create a rankings system that shows this based on the statistics provided. I hope to make it interactive as well, and show the players' pictures and other interesting facts about them as well. Below is an example of a graphic I will use, and the list of players/statistics I will be basing my information and analysis on. 
+
+```{r}
+#| message: false
+#| warning: false
+batting <- read_csv("batting2021.csv")
+
+p <- batting |>
+  filter(PA >= 100) |> # Focus plot on regular starters (at least 100 plate appearances)
+  ggplot(aes(
+    x = K,
+    y = BA,
+    color = OPS,
+    text = paste0(
+      "<b>", Player, "</b> (", Team, ")<br>",
+      "BA: ", BA, " | K: ", K, "<br>",
+      "HR: ", HR, " | RBI: ", RBI, " | OPS: ", OPS
+    )
+  )) +
+  geom_point(alpha = 0.75) +
+  scale_color_viridis_c(option = "plasma") +
+  labs(
+    title = "2021 D1 Softball: Batting Average vs. Strikeouts",
+    x = "Strikeouts (K)",
+    y = "Batting Average (BA)",
+    color = "OPS"
+  ) +
+  theme_minimal()
+
+ggplotly(p, tooltip = "text")
+```
+
+```{r}
+all_players <- batting |>
+  arrange(desc(OPS)) |>
+  select(Player, School = Team, BA, OBP, SLG, OPS, GP, PA, AB, R, H, HR, RBI, BB, K, SB)
+
+reactable(
+  all_players,
+  searchable = TRUE,
+  filterable = TRUE,
+  highlight = TRUE,
+  striped = TRUE,
+  defaultPageSize = 10,
+  theme = reactableTheme(
+    headerStyle = list(backgroundColor = "#1f4e78", color = "#ffffff"),
+    stripedColor = "#f0f7ff",
+    highlightColor = "#dceeff"
+  )
+)
+```
